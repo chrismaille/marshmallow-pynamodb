@@ -15,6 +15,7 @@ PYNAMODB_TYPE_MAPPING = {
     attributes.NullAttribute: fields.Raw,
     attributes.UnicodeSetAttribute: custom_fields.UnicodeSet,
     attributes.NumberSetAttribute: custom_fields.NumberSet,
+    attributes.BinaryAttribute: custom_fields.Binary
 }
 
 

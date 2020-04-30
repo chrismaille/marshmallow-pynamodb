@@ -1,5 +1,18 @@
+from base64 import b64encode, b64decode
+
 from marshmallow import fields
 from marshmallow.exceptions import ValidationError
+
+
+class Binary(fields.Field):
+    def _serialize(self, value):
+        return b64encode(value).decode("utf-8")
+
+    def _deserialize(self, value):
+        try:
+            return b64decode(value.decode("utf-8"))
+        except AttributeError:
+            return b64decode(value)
 
 
 class PynamoNested(fields.Nested):
