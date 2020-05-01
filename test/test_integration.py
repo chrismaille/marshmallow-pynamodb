@@ -40,18 +40,18 @@ def test_validation(data_dumps):
     assert errors.value.messages, {"office_id": ["Not a valid number."]}
 
 
+@pytest.mark.freeze_time("2020-04-21")
 def test_dump(data_attrs, data_dumps, freezer):
     model = Office(**data_attrs)
 
     data = OfficeSchema().dump(model)
 
     data["departments"] = sorted(data["departments"])
-    data["employees"][0]["start_date"] = data_dumps["employees"][0]["start_date"]
-    data["employees"][1]["start_date"] = data_dumps["employees"][1]["start_date"]
 
     assert data == data_dumps
 
 
+@pytest.mark.freeze_time("2020-04-21")
 def test_dump_between_pynamo_and_model_schema(data_attrs, data_dumps, freezer):
     model_from_pynamo = Office(**data_attrs)
 
