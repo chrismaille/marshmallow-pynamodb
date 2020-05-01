@@ -1,188 +1,75 @@
+import json
+from copy import deepcopy
+from datetime import datetime
+from uuid import UUID
+
 import pytest
 from marshmallow import ValidationError
 
-from marshmallow_pynamodb import ModelSchema
-
-from pynamodb.attributes import (
-    ListAttribute,
-    MapAttribute,
-    NumberAttribute,
-    UnicodeAttribute,
-    UnicodeSetAttribute,
-    NumberSetAttribute,
-)
-from pynamodb.models import Model
-
-from unittest import TestCase
-
-from os import environ
+from test.office_model import Location, Office, OfficeEmployeeMap, Person
+from test.office_schema import OfficeSchema
 
 
-class Location(MapAttribute):
-    latitude = NumberAttribute()
-    longitude = NumberAttribute()
-    name = UnicodeAttribute()
+def test_attributes(data_dumps):
+    data = OfficeSchema().load(data_dumps)
+
+    assert getattr(OfficeSchema, "_declared_fields")["office_id"].required is True
+    assert isinstance(data, Office)
+
+    assert data.attribute_values["office_id"] == UUID(
+        "18e430b0-a968-4c22-8b82-9735e94ca058"
+    )
+
+    assert isinstance(data.attribute_values["address"], Location)
+    assert isinstance(data.attribute_values["departments"], list)
+    assert isinstance(data.attribute_values["numbers"], list)
+    assert isinstance(data.attribute_values["employees"], list)
+    assert isinstance(data.attribute_values["employees"][0], OfficeEmployeeMap)
+    assert isinstance(data.attribute_values["employees"][0]["person"], Person)
+    assert isinstance(
+        data.attribute_values["employees"][0]["office_location"], Location
+    )
 
 
-class Person(MapAttribute):
-    firstName = UnicodeAttribute()
-    lastName = UnicodeAttribute()
-    age = NumberAttribute()
+def test_validation(data_dumps):
+    bad_attrs = deepcopy(data_dumps)
+    bad_attrs.pop("office_id")
+
+    with pytest.raises(ValidationError) as errors:
+        OfficeSchema().load(bad_attrs)
+
+    assert errors.value.messages, {"office_id": ["Not a valid number."]}
 
 
-class OfficeEmployeeMap(MapAttribute):
-    office_employee_id = NumberAttribute()
-    person = Person()
-    office_location = Location()
+@pytest.mark.freeze_time("2020-04-21")
+def test_dump(data_attrs, data_dumps, freezer):
+    model = Office(**data_attrs)
+
+    data = OfficeSchema().dump(model)
+
+    data["departments"] = sorted(data["departments"])
+    data["employees"][0]["start_date"] = data_dumps["employees"][0]["start_date"]
+    data["employees"][1]["start_date"] = data_dumps["employees"][1]["start_date"]
+
+    assert data == data_dumps
 
 
-class Office(Model):
-    class Meta:
-        table_name = "OfficeModel"
-        host = "http://localhost:{}".format(environ.get("DOCKER_PORT", 8000))
+@pytest.mark.freeze_time("2020-04-21")
+def test_dump_between_pynamo_and_model_schema(data_attrs, data_dumps, freezer):
+    model_from_pynamo = Office(**data_attrs)
 
-    office_id = NumberAttribute(hash_key=True)
-    address = Location()
-    employees = ListAttribute(of=OfficeEmployeeMap)
-    departments = UnicodeSetAttribute()
-    numbers = NumberSetAttribute()
+    payload = json.dumps(data_dumps)
+    model_from_schema: Office = OfficeSchema().loads(payload)
 
+    model_from_pynamo.departments = sorted(model_from_pynamo.departments)
+    model_from_schema.departments = sorted(model_from_schema.departments)
 
-class OfficeSchema(ModelSchema):
-    class Meta:
-        model = Office
+    model_from_pynamo.employees[0]["start_date"] = datetime(2020, 4, 21, 12, 0, 0)
+    model_from_pynamo.employees[1]["start_date"] = datetime(2020, 4, 21, 12, 0, 0)
+    model_from_schema.employees[0]["start_date"] = datetime(2020, 4, 21, 12, 0, 0)
+    model_from_schema.employees[1]["start_date"] = datetime(2020, 4, 21, 12, 0, 0)
 
+    dump_from_pynamo = OfficeSchema().dumps(model_from_pynamo)
+    dump_from_schema = OfficeSchema().dumps(model_from_schema)
 
-class TestValidatedModelSchema(TestCase):
-    def setUp(self):
-        if not Office.exists():
-            Office.create_table(read_capacity_units=1, write_capacity_units=1)
-
-        self.hash_key = 789
-        self.attrs = {
-            "address": {
-                "latitude": 6.98454,
-                "longitude": 172.38832,
-                "name": "some_location",
-            },
-            "employees": [
-                {
-                    "office_employee_id": 123,
-                    "person": {"firstName": "John", "lastName": "Smith", "age": 45},
-                    "office_location": {
-                        "latitude": -24.0853,
-                        "longitude": 144.87660,
-                        "name": "other_location",
-                    },
-                },
-                {
-                    "office_employee_id": 456,
-                    "person": {"firstName": "Jane", "lastName": "Doe", "age": 33},
-                    "office_location": {
-                        "latitude": -20.57989,
-                        "longitude": 92.30463,
-                        "name": "yal",
-                    },
-                },
-            ],
-            "departments": ["engineering", "dev-ops", "UI/UX", "sales"],
-            "numbers": [1, 2, 3, 4, 5, 6],
-        }
-
-    def test_load(self):
-        self.attrs["office_id"] = self.hash_key
-
-        data = OfficeSchema().load(self.attrs)
-
-        self.assertTrue(getattr(OfficeSchema, "_declared_fields")["office_id"].required)
-
-        self.assertIsInstance(data, Office)
-        self.assertEqual(data.attribute_values["office_id"], self.hash_key)
-        self.assertIsInstance(data.attribute_values["address"], Location)
-        self.assertIsInstance(data.attribute_values["departments"], set)
-        self.assertIsInstance(data.attribute_values["numbers"], set)
-        self.assertIsInstance(data.attribute_values["employees"], list)
-        self.assertIsInstance(data.attribute_values["employees"][0], OfficeEmployeeMap)
-        self.assertIsInstance(data.attribute_values["employees"][0]["person"], Person)
-        self.assertIsInstance(
-            data.attribute_values["employees"][0]["office_location"], Location
-        )
-
-    def test_load_fails_dict_level_0(self):
-        self.attrs["office_id"] = "foobar"
-
-        with pytest.raises(ValidationError) as errors:
-            OfficeSchema().load(self.attrs)
-
-        self.assertDictEqual(
-            errors.value.messages, {"office_id": ["Not a valid number."]}
-        )
-
-    def test_load_fails_dict_level_gt_0(self):
-        self.attrs["office_id"] = self.hash_key
-        self.attrs["employees"][0]["office_location"]["latitude"] = "foobar"
-
-        with pytest.raises(ValidationError) as errors:
-            OfficeSchema().load(self.attrs)
-
-        self.assertDictEqual(
-            errors.value.messages,
-            {
-                "employees": {
-                    0: {"office_location": {"latitude": ["Not a valid number."]}}
-                }
-            },
-        )
-
-    def test_dump(self):
-        model = Office(hash_key=self.hash_key, **self.attrs)
-        self.attrs["office_id"] = self.hash_key
-
-        data = OfficeSchema().dump(model)
-
-        self.assertDictEqual(data, self.attrs)
-
-    def test_save_and_get_dict(self):
-        self.maxDiff = None
-        self.attrs["office_id"] = self.hash_key
-
-        office = OfficeSchema().load(self.attrs)
-        office.save()
-
-        office_model = Office.get(789)
-        office_json = OfficeSchema().dump(office_model)
-        office_json["departments"].sort()
-        self.attrs["departments"].sort()
-
-        self.assertDictEqual(office_json, self.attrs)
-
-    def test_objs_serialization(self):
-        self.maxDiff = None
-
-        self.attrs["office_id"] = self.hash_key
-
-        john = Person(firstName="John", lastName="Smith", age=45,)
-        jane = Person(firstName="Jane", lastName="Doe", age=33,)
-        loc = Location(latitude=6.98454, longitude=172.38832, name="some_location")
-        loc1 = Location(latitude=-24.0853, longitude=144.87660, name="other_location")
-        loc2 = Location(latitude=-20.57989, longitude=92.30463, name="yal")
-        emp1 = OfficeEmployeeMap(
-            office_employee_id=123, person=john, office_location=loc1
-        )
-        emp2 = OfficeEmployeeMap(
-            office_employee_id=456, person=jane, office_location=loc2
-        )
-
-        office = Office(
-            office_id=self.hash_key,
-            address=loc,
-            employees=[emp1, emp2],
-            departments=("engineering", "dev-ops", "UI/UX", "sales"),
-            numbers=(1, 2, 3, 4, 5, 6),
-        )
-
-        office_json = OfficeSchema().dump(office)
-        self.assertDictEqual(office_json, self.attrs)
-
-    def tearDown(self):
-        Office(hash_key=self.hash_key).delete()
+    assert dump_from_pynamo == dump_from_schema

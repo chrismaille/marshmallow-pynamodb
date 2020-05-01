@@ -1,5 +1,23 @@
+from base64 import b64decode, b64encode
+
 from marshmallow import fields
 from marshmallow.exceptions import ValidationError
+
+
+class Binary64Field(fields.Field):
+    def _validate(self, value):
+        if not isinstance(value, bytes):
+            raise ValidationError("Invalid input type.")
+
+    def _deserialize(self, value, attr, data, **kwargs):
+        if not value:
+            return None
+        return b64decode(value.encode("utf-8"))
+
+    def _serialize(self, value, attr, data, **kwargs):
+        if not value:
+            return None
+        return b64encode(value).decode("utf-8")
 
 
 class PynamoNested(fields.Nested):
