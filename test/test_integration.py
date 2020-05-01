@@ -46,9 +46,9 @@ def test_dump(data_attrs, data_dumps, freezer):
     data = OfficeSchema().dump(model)
 
     data["departments"] = sorted(data["departments"])
-    assert (
-        data["employees"][0]["start_date"] == data_dumps["employees"][0]["start_date"]
-    )
+    data["employees"][0]["start_date"] = data_dumps["employees"][0]["start_date"]
+    data["employees"][1]["start_date"] = data_dumps["employees"][1]["start_date"]
+
     assert data == data_dumps
 
 
