@@ -62,6 +62,65 @@ user_schema.load({"last_name": "Smith", "first_name": "John"})
 # user<Smith>
 ```
 
+### pynamodb-attributes support
+Currently we support the following custom attributes from
+[pynamodb-attributes](https://github.com/lyft/pynamodb-attributes)
+library:
+
+- `IntegerAttribute` – same as `NumberAttribute` but whose value is typed as `int` (rather than `float`)
+- `UUIDAttribute` - serializes a `UUID` Python object as a `S` type attribute (_e.g._ `'a8098c1a-f86e-11da-bd1a-00112444be1e'`)
+- `UnicodeEnumAttribute` - serializes a string-valued `Enum` into a Unicode (`S`-typed) attribute
+- `IntegerEnumAttribute` - serializes a integer-valued `Enum` into a
+  Number (`S`-typed) attribute
+
+```python
+import uuid
+from enum import Enum
+
+from pynamodb.attributes import UnicodeAttribute
+from pynamodb.models import Model
+from pynamodb_attributes import IntegerAttribute, UUIDAttribute, UnicodeEnumAttribute
+
+from marshmallow_pynamodb import ModelSchema
+
+
+class Gender(Enum):
+    male = "male"
+    female = "female"
+    not_informed = "not_informed"
+
+
+class People(Model):
+    class Meta:
+        table_name = "people"
+    uuid = UUIDAttribute(hash_key=True)
+    first_name = UnicodeAttribute()
+    last_name = UnicodeAttribute()
+    gender = UnicodeEnumAttribute(Gender)
+    age = IntegerAttribute()
+
+    
+class PeopleSchema(ModelSchema):
+    class Meta:
+        model = People
+
+
+people_schema = PeopleSchema()
+payload = {
+    "uuid": "064245dc0e5f415c95d3ba6b8f728ae4",
+    "first_name": "John",
+    "last_name": "Doe",
+    "gender": Gender.male.value,
+    "age": 43
+}
+people = people_schema.load(payload)
+# people<064245dc-0e5f-415c-95d3-ba6b8f728ae4>
+assert people.gender == Gender.male
+assert people.uuid == uuid.UUID("064245dc0e5f415c95d3ba6b8f728ae4")
+```
+
+See more examples in tests.
+
 ### Nested models? No problem
 
 ```python

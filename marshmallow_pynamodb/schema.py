@@ -1,5 +1,7 @@
 from marshmallow import Schema, SchemaOpts, post_load, fields
 from marshmallow.schema import SchemaMeta
+from marshmallow_enum import EnumField
+
 from marshmallow_pynamodb.convert import attribute2field
 from marshmallow_pynamodb.fields import PynamoNested
 from pynamodb.attributes import Attribute
@@ -51,6 +53,8 @@ class ModelMeta(SchemaMeta):
                         attribute.element_type.__name__, (ModelSchema,), {"Meta": Meta}
                     )
                     field = field(PynamoNested(element_type))
+                elif field == EnumField:
+                    field = field(attribute.enum_type, by_value=True)
                 else:
                     field = field()
 
