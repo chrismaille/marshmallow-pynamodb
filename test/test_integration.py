@@ -1,5 +1,6 @@
 import json
 from copy import deepcopy
+from datetime import datetime
 from uuid import UUID
 
 import pytest
@@ -47,6 +48,8 @@ def test_dump(data_attrs, data_dumps, freezer):
     data = OfficeSchema().dump(model)
 
     data["departments"] = sorted(data["departments"])
+    data["employees"][0]["start_date"] = data_dumps["employees"][0]["start_date"]
+    data["employees"][1]["start_date"] = data_dumps["employees"][1]["start_date"]
 
     assert data == data_dumps
 
@@ -60,6 +63,11 @@ def test_dump_between_pynamo_and_model_schema(data_attrs, data_dumps, freezer):
 
     model_from_pynamo.departments = sorted(model_from_pynamo.departments)
     model_from_schema.departments = sorted(model_from_schema.departments)
+
+    model_from_pynamo.employees[0]["start_date"] = datetime(2020, 4, 21, 12, 0, 0)
+    model_from_pynamo.employees[1]["start_date"] = datetime(2020, 4, 21, 12, 0, 0)
+    model_from_schema.employees[0]["start_date"] = datetime(2020, 4, 21, 12, 0, 0)
+    model_from_schema.employees[1]["start_date"] = datetime(2020, 4, 21, 12, 0, 0)
 
     dump_from_pynamo = OfficeSchema().dumps(model_from_pynamo)
     dump_from_schema = OfficeSchema().dumps(model_from_schema)
