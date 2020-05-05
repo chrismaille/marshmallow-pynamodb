@@ -41,7 +41,6 @@ def data_dumps():
                     "lastName": "Smith",
                     "photo": "cGhvdG9fam9obl9zbWl0aA==",
                     "gender": "M",
-                    "bin_identifier": "YmluSWRlbnRpZmllcg=="
                 },
                 "start_date": datetime.utcnow().isoformat(),
             },
@@ -60,7 +59,6 @@ def data_dumps():
                     "lastName": "Doe",
                     "photo": "cGhvdG9famFuZV9kb2U=",
                     "gender": "F",
-                    "bin_identifier": "YmluSWRlbnRpZmllcg=="
                 },
                 "start_date": datetime.utcnow().isoformat(),
             },
@@ -90,7 +88,6 @@ def data_attrs():
                     "age": 45,
                     "photo": b"photo_john_smith",
                     "gender": PersonGender.male,
-                    "bin_identifier": b"binIdentifier"
                 },
                 "office_location": {
                     "latitude": -24.0853,
@@ -109,7 +106,6 @@ def data_attrs():
                     "age": 33,
                     "photo": b"photo_jane_doe",
                     "gender": PersonGender.female,
-                    "bin_identifier": b"binIdentifier"
                 },
                 "office_location": {
                     "latitude": -20.57989,
