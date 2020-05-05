@@ -45,6 +45,7 @@ class Person(MapAttribute):
     age = IntegerAttribute()
     photo = BinaryAttribute()
     gender = UnicodeEnumAttribute(PersonGender)
+    bin_identifier = BinaryAttribute()
 
 
 class OfficeEmployeeMap(MapAttribute):
