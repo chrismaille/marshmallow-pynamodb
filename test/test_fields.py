@@ -1,9 +1,8 @@
 from marshmallow import fields
-from marshmallow import missing
 from marshmallow.exceptions import ValidationError
 from marshmallow_pynamodb.fields import PynamoSet, NumberSet, UnicodeSet
 from unittest import TestCase
-from mock import patch, MagicMock
+from mock import patch
 
 
 class TestPynamoSet(TestCase):

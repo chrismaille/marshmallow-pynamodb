@@ -1,10 +1,35 @@
+import warnings
 from base64 import b64decode, b64encode
 
 from marshmallow import fields
 from marshmallow.exceptions import ValidationError
 
 
-class Binary64Field(fields.Field):
+class Binary64Field:
+    def __new__(cls, *args, **kwargs):
+        """Binary64 Field deprecated."""
+        warnings.warn(
+            "This field is deprecated. "
+            "It will removed on next version. "
+            "Please, use BinaryField(base64=True) instead.",
+            DeprecationWarning,
+        )
+        return BinaryField(base64=True, *args, **kwargs)
+
+
+class BinaryField(fields.Field):
+    def __init__(self, base64: bool = False, encoding: str = "utf-8", **kwargs):
+        """Bytestring field.
+
+        :param base64: True or False, setting this will encode/decode the binary in base64.
+        :param encoding: Set byte encoding - default: utf-8
+        :param kwargs: The same keyword arguments that :class:`Field` receives.
+        """
+
+        super().__init__(**kwargs)
+        self.base64 = base64
+        self.encoding = encoding
+
     def _validate(self, value):
         if not isinstance(value, bytes):
             raise ValidationError("Invalid input type.")
@@ -12,12 +37,18 @@ class Binary64Field(fields.Field):
     def _deserialize(self, value, attr, data, **kwargs):
         if not value:
             return None
-        return b64decode(value.encode("utf-8"))
+        if self.base64:
+            return b64decode(value.encode(self.encoding))
+        else:
+            return value.encode(self.encoding)
 
     def _serialize(self, value, attr, data, **kwargs):
         if not value:
             return None
-        return b64encode(value).decode("utf-8")
+        if self.base64:
+            return b64encode(value).decode(self.encoding)
+        else:
+            return value.decode(self.encoding)
 
 
 class PynamoNested(fields.Nested):
