@@ -18,11 +18,11 @@ class Binary64Field:
 
 
 class BinaryField(fields.Field):
-    def __init__(self, base64: bool = False, encoding: str = "utf-8", **kwargs):
+    def __init__(self, base64: bool = True, encoding: str = "utf-8", **kwargs):
         """Bytestring field.
 
-        :param base64: True or False, setting this will encode/decode the binary in base64.
-        :param encoding: Set byte encoding - default: utf-8
+        :param base64: True or False, setting this will encode/decode the binary in base64. Default: True
+        :param encoding: Set byte encoding - Default: utf-8
         :param kwargs: The same keyword arguments that :class:`Field` receives.
         """
 
