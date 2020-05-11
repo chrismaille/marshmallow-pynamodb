@@ -1,7 +1,7 @@
 # Changelog
 
-## 0.9.7 (2020-05-07)
+## 0.9.8 (2020-05-11)
 
 #### Fixes
 
-* Make Base64 option default for BinaryField
+* schema metaclass error
