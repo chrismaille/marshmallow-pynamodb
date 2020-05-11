@@ -75,7 +75,7 @@ class ModelMeta(SchemaMeta):
         return declared_fields
 
 
-class ModelSchema(with_metaclass(ModelMeta, Schema)):
+class ModelSchema(Schema, metaclass=ModelMeta):
     OPTIONS_CLASS = ModelOpts
 
     @post_load
