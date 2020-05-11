@@ -1,8 +1,10 @@
 import inspect
 
+import typing
 from marshmallow import Schema, SchemaOpts, post_load, fields
 from marshmallow.schema import SchemaMeta
 from marshmallow_enum import EnumField
+from pynamodb.models import Model
 
 from marshmallow_pynamodb.convert import attribute2field
 from marshmallow_pynamodb.fields import PynamoNested
@@ -97,6 +99,35 @@ class ModelMeta(SchemaMeta):
 
 class ModelSchema(Schema, metaclass=ModelMeta):
     OPTIONS_CLASS = ModelOpts
+
+    def dump(self, obj: typing.Any, *args, **kwargs):
+        """Serialize an object to native Python data types according to this Schema's fields."""
+
+        def convert_to_values(
+            original: Model, converted: typing.Dict[typing.Any, typing.Any]
+        ):
+            """Convert PynamoDB instance to Dict.
+
+            Using model.attribute_values to unpack data.
+            Some keys will return another pynamodb instance
+            instead dict.
+            """
+            if isinstance(obj, dict):
+                return obj
+            for key in original.attribute_values:
+                if (
+                    getattr(original.attribute_values[key], "attribute_values", None)
+                    is not None
+                ):
+                    converted[key] = convert_to_values(
+                        original.attribute_values[key], {}
+                    )
+                else:
+                    converted[key] = original.attribute_values[key]
+            return converted
+
+        dict_obj = convert_to_values(obj, {})
+        return super(ModelSchema, self).dump(dict_obj, *args, **kwargs)
 
     @post_load
     def hydrate_pynamo_model(self, data, **kwargs):
