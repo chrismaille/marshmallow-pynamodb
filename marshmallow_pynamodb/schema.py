@@ -84,7 +84,13 @@ class ModelMeta(SchemaMeta):
                         elif attribute.is_range_key:
                             klass.opts.range_key = field_name
 
-                    field.default = attribute.default
+                    # The `default` argument in PynamoDB
+                    # is equivalent to `missing` argument in Marshmallow
+                    # Example: for a UTCDateTimeAttribute, default value
+                    # must be a datetime object:
+                    # Datetime obj (from Pynamo default) -> String (DynamoDB)
+                    # Payload Input (Json) -> Datetime obj (from Marshmallow missing) -> String (DynamoDB)
+                    field.missing = attribute.default
                     declared_fields[field_name] = field
         return declared_fields
 

@@ -24,5 +24,5 @@ class TestDefault(TestCase):
                 model = User
 
         self.assertEqual(
-            getattr(UserSchema, "_declared_fields")["email"].default, "foo@bar.com"
+            getattr(UserSchema, "_declared_fields")["email"].missing, "foo@bar.com"
         )
