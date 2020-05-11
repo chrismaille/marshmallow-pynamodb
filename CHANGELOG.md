@@ -1,7 +1,7 @@
 # Changelog
 
-## 0.9.8 (2020-05-11)
+## 0.9.9 (2020-05-11)
 
 #### Fixes
 
-* schema metaclass error
+* fix CI tests
