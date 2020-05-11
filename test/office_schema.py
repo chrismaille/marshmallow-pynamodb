@@ -29,6 +29,7 @@ class HQSchema(OfficeSchema):
     parent marshmallow ModelSchemas. (ex.: OfficeSchema Schema)
 
     """
+
     class Meta:
         model = Headquarters
 
@@ -40,6 +41,7 @@ class HeadquartersSchema(ModelSchema):
     parent PynamoDB Models. (ex.: Office Model)
 
     """
+
     class Meta:
         model = Headquarters
         inherit_field_models = True
