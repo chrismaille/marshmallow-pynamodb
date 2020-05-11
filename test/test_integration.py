@@ -7,7 +7,7 @@ import pytest
 from marshmallow import ValidationError
 
 from test.office_model import Location, Office, OfficeEmployeeMap, Person
-from test.office_schema import OfficeSchema
+from test.office_schema import OfficeSchema, HeadquartersSchema, HQSchema
 
 
 def test_attributes(data_dumps):
@@ -73,3 +73,24 @@ def test_dump_between_pynamo_and_model_schema(data_attrs, data_dumps, freezer):
     dump_from_schema = OfficeSchema().dumps(model_from_schema)
 
     assert dump_from_pynamo == dump_from_schema
+
+
+def test_attributes_from_subclass():
+    schema1 = HeadquartersSchema()
+    schema2 = HQSchema()
+    test_schema1_fields = sorted([field for field in schema1.declared_fields.keys()])
+    test_schema2_fields = sorted([field for field in schema2.declared_fields.keys()])
+    assert test_schema1_fields == test_schema2_fields
+
+
+def test_attributes_from_parent_models():
+    test_schema = HeadquartersSchema()
+    test_schema_fields = [field for field in test_schema.declared_fields.keys()]
+    assert test_schema_fields == [
+        "region",
+        "office_id",
+        "address",
+        "employees",
+        "departments",
+        "numbers",
+    ]

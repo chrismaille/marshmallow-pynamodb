@@ -65,3 +65,7 @@ class Office(Model):
     employees = ListAttribute(of=OfficeEmployeeMap)
     departments = UnicodeSetAttribute()
     numbers = NumberSetAttribute()
+
+
+class Headquarters(Office):
+    region = UnicodeAttribute()
