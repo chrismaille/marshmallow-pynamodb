@@ -78,7 +78,7 @@ class ModelMeta(SchemaMeta):
                         or attribute.is_range_key
                         or not attribute.null
                     ):
-                        field.required = True
+                        field.required = attribute.default is None
                         if attribute.is_hash_key:
                             klass.opts.hash_key = field_name
                         elif attribute.is_range_key:
