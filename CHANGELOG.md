@@ -1,7 +1,7 @@
 # Changelog
 
-## 0.9.9 (2020-05-11)
+## 0.10.0 (2020-05-11)
 
-#### Fixes
+#### New Features
 
-* fix CI tests
+* make Marshmallow `missing` parameter read PynamoDB `default` parameter
