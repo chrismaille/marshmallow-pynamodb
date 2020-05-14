@@ -207,6 +207,37 @@ OfficeSchema().load(
 # Office<789>
 ```
 
+### Using inherited fields
+
+To use inherited fields from parent classes, use the `inherit_field_models` option. Example:
+
+```python
+# pip install pynamodb_attributes
+import uuid
+from pynamodb_attributes import UnicodeEnumAttribute, UUIDAttribute
+from pynamodb.attributes import UnicodeAttribute
+from pynamodb.models import Model
+from marshmallow_pynamodb import ModelSchema
+from enum import Enum
+
+class MyStatus(Enum):
+   CREATED = "CREATED"
+
+class BaseDocument(Model):
+  uuid = UUIDAttribute(default=uuid.uuid4)
+
+class MyDocument(BaseDocument):
+  status = UnicodeEnumAttribute(MyStatus, default=MyStatus.CREATED)
+  content = UnicodeAttribute()
+
+class MyDocumentSchema(ModelSchema):
+  class Meta:
+    model = MyDocument
+    inherit_field_models = True
+    
+MyDocumentSchema().load({"content": "foo"})
+```
+
 ### License
 MIT licensed. See the bundled
 [LICENSE](https://github.com/mathewmarcus/marshmallow-pynamodb/blob/master/LICENSE.txt)
