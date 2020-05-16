@@ -1,7 +1,4 @@
 # Changelog
 
-## 0.10.2 (2020-05-11)
+## 0.10.3 (2020-05-15)
 
-#### Fixes
-
-* convert pynamodb instance to dict before dump
