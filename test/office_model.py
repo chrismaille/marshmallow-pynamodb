@@ -37,6 +37,7 @@ class Location(MapAttribute):
     longitude = NumberAttribute()
     name = UnicodeAttribute()
     category = IntegerEnumAttribute(LocationCategory)
+    number_of_seats = NumberAttribute(null=True)
 
 
 class Person(MapAttribute):
@@ -65,6 +66,7 @@ class Office(Model):
     employees = ListAttribute(of=OfficeEmployeeMap)
     departments = UnicodeSetAttribute()
     numbers = NumberSetAttribute()
+    security_number = UnicodeAttribute(null=True)
 
 
 class Headquarters(Office):
