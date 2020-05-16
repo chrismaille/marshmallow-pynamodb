@@ -1,6 +1,5 @@
 import json
 from copy import deepcopy
-from datetime import datetime
 from uuid import UUID
 
 import pytest
@@ -55,22 +54,22 @@ def test_dump(data_attrs, data_dumps, freezer):
 
 
 @pytest.mark.freeze_time("2020-04-21")
-def test_dump_between_pynamo_and_model_schema(data_attrs, data_dumps, freezer):
+def test_dump_between_pynamo_and_model_schema(data_attrs, data_dumps):
     model_from_pynamo = Office(**data_attrs)
 
     payload = json.dumps(data_dumps)
     model_from_schema: Office = OfficeSchema().loads(payload)
 
+    assert (
+        model_from_pynamo.attribute_values.keys()
+        == model_from_schema.attribute_values.keys()
+    )
+
     model_from_pynamo.departments = sorted(model_from_pynamo.departments)
     model_from_schema.departments = sorted(model_from_schema.departments)
 
-    model_from_pynamo.employees[0]["start_date"] = datetime(2020, 4, 21, 12, 0, 0)
-    model_from_pynamo.employees[1]["start_date"] = datetime(2020, 4, 21, 12, 0, 0)
-    model_from_schema.employees[0]["start_date"] = datetime(2020, 4, 21, 12, 0, 0)
-    model_from_schema.employees[1]["start_date"] = datetime(2020, 4, 21, 12, 0, 0)
-
-    dump_from_pynamo = OfficeSchema().dumps(model_from_pynamo)
-    dump_from_schema = OfficeSchema().dumps(model_from_schema)
+    dump_from_pynamo = OfficeSchema().dump(model_from_pynamo)
+    dump_from_schema = OfficeSchema().dump(model_from_schema)
 
     assert dump_from_pynamo == dump_from_schema
 
@@ -93,4 +92,5 @@ def test_attributes_from_parent_models():
         "employees",
         "departments",
         "numbers",
+        "security_number",
     ]
