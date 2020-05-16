@@ -109,20 +109,16 @@ class ModelSchema(Schema, metaclass=ModelMeta):
 
     def load(self, *args, **kwargs):
         """Override load to add pre-generated partial fields."""
-        data = args[0]
-        many = kwargs.pop("many", None)
         partial = kwargs.pop("partial", None)
-        if partial is not None:
+        if partial is not None and self.opts.partial_fields:
             if isinstance(partial, set):
                 partial = list(partial)
             if isinstance(partial, list):
                 partial += self.opts.partial_fields
-        else:
+        elif self.opts.partial_fields:
             partial = self.opts.partial_fields
-        unknown = kwargs.pop("unknown", None)
-        return self._do_load(
-            data, many=many, partial=partial, unknown=unknown, postprocess=True
-        )
+        kwargs["partial"] = partial
+        return super(ModelSchema, self).load(*args, **kwargs)
 
     def dump(self, obj: typing.Any, *args, **kwargs):
         """Serialize an object to native Python data types according to this Schema's fields."""
