@@ -29,7 +29,7 @@ exclude = '''
 
 [tool.poetry]
 name = "marshmallow-pynamo-db"
-version = "0.10.3"
+version = "0.10.4"
 description = "PynamoDB integration with the Marshmallow (de)serialization library"
 authors = ["Mathew Marcus <mathewmarcus456@gmail.com>", "Chris Maillefaud <chrismaillefaud@gmail.com>"]
 readme = "README.md"
