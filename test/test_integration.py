@@ -1,9 +1,15 @@
 import json
 from copy import deepcopy
+from os import environ
 from uuid import UUID
 
 import pytest
-from marshmallow import ValidationError
+from marshmallow import ValidationError, fields
+from pynamodb.attributes import (
+    NumberAttribute,
+    ListAttribute,
+)
+from pynamodb.models import Model
 
 from test.office_model import Location, Office, OfficeEmployeeMap, Person
 from test.office_schema import OfficeSchema, HeadquartersSchema, HQSchema
@@ -93,4 +99,52 @@ def test_attributes_from_parent_models():
         "departments",
         "numbers",
         "security_number",
+        "office_times",
     ]
+
+
+def test_list_attributes_without_type():
+    from marshmallow_pynamodb import ModelSchema
+
+    class TestModel(Model):
+        class Meta:
+            table_name = "TestModelName"
+            host = "http://localhost:{}".format(environ.get("DOCKER_PORT", 8000))
+
+        office_id = NumberAttribute(hash_key=True)
+        test_list = ListAttribute()
+
+    class TestSchemaWithType(ModelSchema):
+        test_list = fields.List(fields.Integer)
+
+        class Meta:
+            model = TestModel
+
+    class TestSchemaWithoutType(ModelSchema):
+        class Meta:
+            model = TestModel
+
+    TestModel.create_table(read_capacity_units=1, write_capacity_units=1)
+
+    # Test Pynamo
+    test_data = {"office_id": 123, "test_list": [1, 2, 3, 4]}
+    test_model = TestModel(**test_data)
+    test_model.save()
+    test_instance = TestModel.get(123)
+    assert test_instance.test_list == [1, 2, 3, 4]
+
+    # Test Schema with explicit Type
+    instance = TestSchemaWithType().load({"office_id": 456, "test_list": [1, 2, 3, 4]})
+    instance.save()
+    test_instance = TestModel.get(456)
+    assert test_instance.test_list == [1, 2, 3, 4]
+
+    # Test Schema without Type
+    instance = TestSchemaWithoutType().load(
+        {"office_id": 789, "test_list": [1, "2", True]}
+    )
+    instance.save()
+    test_instance = TestModel.get(789)
+    assert test_instance.test_list == [1, "2", True]
+
+    TestModel.delete_table()

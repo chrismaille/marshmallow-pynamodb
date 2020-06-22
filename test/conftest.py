@@ -65,6 +65,7 @@ def data_dumps():
         ],
         "numbers": [1, 2, 3, 4, 5, 6],
         "office_id": "18e430b0-a968-4c22-8b82-9735e94ca058",
+        "office_times": ["standard", 8, 17],
     }
 
 
@@ -118,4 +119,5 @@ def data_attrs():
         "departments": set(sorted(["engineering", "dev-ops", "UI/UX", "sales"])),
         "numbers": [1, 2, 3, 4, 5, 6],
         "office_id": uuid.UUID("18e430b0-a968-4c22-8b82-9735e94ca058"),
+        "office_times": ["standard", 8, 17],
     }
