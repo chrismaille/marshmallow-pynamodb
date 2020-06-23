@@ -1,7 +1,4 @@
 # Changelog
 
-## 0.10.4 (2020-05-15)
+## 0.10.5 (2020-06-22)
 
-#### Others
-
-* add test_inherit_fields.py
