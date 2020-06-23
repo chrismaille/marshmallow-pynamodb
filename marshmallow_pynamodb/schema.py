@@ -59,15 +59,19 @@ class ModelMeta(SchemaMeta):
                         field = field(sub_model)
                     elif field == fields.List:
 
-                        class Meta:
-                            model = attribute.element_type
+                        if not attribute.element_type:
+                            field = field(fields.Raw)
+                        else:
 
-                        element_type = type(
-                            attribute.element_type.__name__,
-                            (ModelSchema,),
-                            {"Meta": Meta},
-                        )
-                        field = field(PynamoNested(element_type))
+                            class Meta:
+                                model = attribute.element_type
+
+                            element_type = type(
+                                attribute.element_type.__name__,
+                                (ModelSchema,),
+                                {"Meta": Meta},
+                            )
+                            field = field(PynamoNested(element_type))
                     elif field == EnumField:
                         field = field(attribute.enum_type, by_value=True)
                     else:

@@ -67,6 +67,7 @@ class Office(Model):
     departments = UnicodeSetAttribute()
     numbers = NumberSetAttribute()
     security_number = UnicodeAttribute(null=True)
+    office_times = ListAttribute()
 
 
 class Headquarters(Office):
