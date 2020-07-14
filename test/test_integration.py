@@ -103,6 +103,15 @@ def test_attributes_from_parent_models():
     ]
 
 
+def test_attribute_with_null_value(data_dumps):
+    test_data = deepcopy(data_dumps)
+    test_data["security_number"] = None
+
+    test_instance: Office = OfficeSchema().load(test_data)
+
+    assert test_instance.security_number is None
+
+
 def test_list_attributes_without_type():
     from marshmallow_pynamodb import ModelSchema
 

@@ -24,7 +24,7 @@ class TestFieldOverriding(TestCase):
                 model = User
 
         self.assertFalse(getattr(UserSchema, "_declared_fields")["email"].required)
-        self.assertFalse(getattr(UserSchema, "_declared_fields")["email"].allow_none)
+        self.assertTrue(getattr(UserSchema, "_declared_fields")["email"].allow_none)
 
     def test_override(self):
         class UserSchema(ModelSchema):

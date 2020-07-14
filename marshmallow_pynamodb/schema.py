@@ -103,6 +103,7 @@ class ModelMeta(SchemaMeta):
                     # to partial_fields list
                     if attribute.null is True:
                         klass.opts.partial_fields.append(field_name)
+                        field.allow_none = True
 
                     declared_fields[field_name] = field
         return declared_fields
